@@ -10,8 +10,8 @@ android {
         applicationId = "top.littlew.npn"
         minSdk = 36
         targetSdk = 36
-        versionCode = 2
-        versionName = "1.1"
+        versionCode = 3
+        versionName = "1.2"
     }
 
     buildTypes {

@@ -2,6 +2,7 @@ package top.littlew.npn;
 
 import android.annotation.SuppressLint;
 import android.app.Application;
+import android.app.PendingIntent;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
@@ -131,32 +132,36 @@ public class XposedInit implements IXposedHookLoadPackage {
             XposedHelpers.findAndHookMethod(
                     "com.google.android.systemui.ambientmusic.AmbientIndicationContainer",
                     lpparam.classLoader,
-                    "updatePill",
+                    "setAmbientMusic",
+                    CharSequence.class,
+                    PendingIntent.class,
+                    PendingIntent.class,
+                    int.class,
+                    boolean.class,
+                    String.class,
+                    "com.google.android.systemui.keyguard.shared.ExtendedIndication",
                     new XC_MethodHook() {
                         @Override
-                        protected void beforeHookedMethod(MethodHookParam param) {
+                        protected void afterHookedMethod(MethodHookParam param) {
                             Object thiz = param.thisObject;
-                            Object extendedIndication = XposedHelpers.getObjectField(thiz, "mExtendedIndication");
 
-                            boolean hasData = false;
+                            Object extendedIndication = param.args[6];
+                            int iconOverride = (int) param.args[3];
+
                             if (extendedIndication != null) {
-                                Object data = XposedHelpers.getObjectField(extendedIndication, "expandedIndicationData");
-                                hasData = (data != null);
+                                XposedHelpers.setBooleanField(thiz, "mUsingExtendedIndication", true);
                             }
 
-                            if (hasData) {
-                                XposedHelpers.setBooleanField(thiz, "mUsingExtendedIndication", true);
-                                int iconOverride = XposedHelpers.getIntField(thiz, "mIconOverride");
-
-                                // 3 = MUSIC_NOT_FOUND
-                                if (iconOverride == 3) {
-                                    Context context = ((View) thiz).getContext();
-                                    Drawable icon = getCachedDrawable(context);
-                                    if (icon != null) {
-                                        XposedHelpers.setObjectField(thiz, "mAmbientIconOverride", icon);
-                                    }
+                            // 3 = MUSIC_NOT_FOUND
+                            if (iconOverride == 3) {
+                                Context context = ((View) thiz).getContext();
+                                Drawable icon = getCachedDrawable(context);
+                                if (icon != null) {
+                                    XposedHelpers.setObjectField(thiz, "mAmbientIconOverride", icon);
                                 }
                             }
+
+                            XposedHelpers.callMethod(thiz, "updatePill");
                         }
                     });
         }
