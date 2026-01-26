@@ -150,6 +150,7 @@ public class XposedInit implements IXposedHookLoadPackage {
 
                             if (extendedIndication != null) {
                                 XposedHelpers.setBooleanField(thiz, "mUsingExtendedIndication", true);
+                                XposedHelpers.setObjectField(thiz, "mExtendedIndication", extendedIndication);
                             }
 
                             // 3 = MUSIC_NOT_FOUND
